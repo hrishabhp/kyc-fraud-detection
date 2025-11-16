@@ -1,24 +1,42 @@
+import re
 from fastapi import FastAPI
+from dotenv import load_dotenv
 
+load_dotenv()
+
+from app.database import logs_collection
+
+from pydantic import BaseModel
 app = FastAPI()
 
+class KYCRequest(BaseModel):
+    type: str
+    value: str
 @app.get("/health")
 def health():
     return {"status": "API is working"}
 
-import re
-from fastapi import FastAPI
-
-app= FastAPI()
 @app.get("/validate-pan")
-def validate_pan(pan: str):
-    pan = pan.upper() #Fix: Handle lowercase PAN inputs
+async def validate_pan(pan: str):
+    pan = pan.upper()  # Handle lowercase inputs
     pattern = r"^[A-Z]{5}[0-9]{4}[A-Z]$"
 
+    # PAN validation
     if re.match(pattern, pan):
-        return {"pan": pan, "valid": True}
+        is_valid = True
+        response = {"pan": pan, "valid": True}
     else:
-        return {"pan": pan, "valid": False}
+        is_valid = False
+        response = {"pan": pan, "valid": False}
+
+    # Log into MongoDB
+    await logs_collection.insert_one({
+        "type": "PAN",
+        "input": pan,
+        "result": is_valid
+    })
+
+    return response
 
 # Verhoeff algorithm tables
 d_table = [
@@ -57,13 +75,104 @@ def verhoeff_check(number: str) -> bool:
     return c == 0
 
 @app.get("/validate-aadhaar")
-def validate_aadhaar(aadhaar: str):
+async def validate_aadhaar(aadhaar: str):
+    # Basic checks
     if len(aadhaar) != 12 or not aadhaar.isdigit():
-        return {"aadhaar": aadhaar, "valid": False}
-
-    if verhoeff_check(aadhaar):
-        return {"aadhaar": aadhaar, "valid": True}
+        is_valid = False
+        response = {"aadhaar": aadhaar, "valid": False}
     else:
-        return {"aadhaar": aadhaar, "valid": False}
+        # Check using Verhoeff algorithm
+        if verhoeff_check(aadhaar):
+            is_valid = True
+            response = {"aadhaar": aadhaar, "valid": True}
+        else:
+            is_valid = False
+            response = {"aadhaar": aadhaar, "valid": False}
 
+    # Log into MongoDB
+    await logs_collection.insert_one({
+        "type": "AADHAAR",
+        "input": aadhaar,
+        "result": is_valid
+    })
 
+    return response
+@app.post("/validate")
+async def validate_kyc(data: KYCRequest):
+    kyc_type = data.type.upper()
+    value = data.value.strip()
+
+    # -------------------- PAN VALIDATION --------------------
+    if kyc_type == "PAN":
+        # PAN Pattern
+        pattern = r"^[A-Z]{5}[0-9]{4}[A-Z]$"
+
+        if re.match(pattern, value.upper()):
+            result = True
+        else:
+            result = False
+
+        # Log PAN
+        await logs_collection.insert_one({
+            "type": "PAN",
+            "input": value,
+            "result": result
+        })
+
+        return {"type": "PAN", "value": value, "valid": result}
+
+    # -------------------- AADHAAR VALIDATION --------------------
+    elif kyc_type == "AADHAAR":
+
+        if len(value) == 12 and value.isdigit() and verhoeff_check(value):
+            result = True
+        else:
+            result = False
+
+        # Log Aadhaar
+        await logs_collection.insert_one({
+            "type": "AADHAAR",
+            "input": value,
+            "result": result
+        })
+
+        return {"type": "AADHAAR", "value": value, "valid": result}
+
+    # -------------------- INVALID TYPE --------------------
+    else:
+        return {"error": "Invalid type. Use PAN or AADHAAR"}
+
+from bson import ObjectId
+
+@app.get("/logs")
+async def get_logs():
+    cursor = logs_collection.find().sort("_id", -1).limit(20)
+    logs = []
+    async for document in cursor:
+        document["_id"] = str(document["_id"])
+        logs.append(document)
+    return {"logs": logs}
+@app.get("/stats")
+async def get_stats():
+    # PAN stats
+    pan_valid = await logs_collection.count_documents({"type": "PAN", "result": True})
+    pan_invalid = await logs_collection.count_documents({"type": "PAN", "result": False})
+
+    # Aadhaar stats
+    aadhaar_valid = await logs_collection.count_documents({"type": "AADHAAR", "result": True})
+    aadhaar_invalid = await logs_collection.count_documents({"type": "AADHAAR", "result": False})
+
+    # Total requests
+    total_requests = await logs_collection.count_documents({})
+
+    return {
+        "total_requests": total_requests,
+        "pan": {
+            "valid": pan_valid,
+            "invalid": pan_invalid
+        },
+        "aadhaar": {
+            "valid": aadhaar_valid,
+            "invalid": aadhaar_invalid
+        }
+    }
