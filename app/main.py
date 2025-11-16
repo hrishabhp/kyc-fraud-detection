@@ -142,8 +142,6 @@ async def validate_kyc(data: KYCRequest):
     else:
         return {"error": "Invalid type. Use PAN or AADHAAR"}
 
-from bson import ObjectId
-
 @app.get("/logs")
 async def get_logs():
     cursor = logs_collection.find().sort("_id", -1).limit(20)
