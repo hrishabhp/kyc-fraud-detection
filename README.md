@@ -74,8 +74,3 @@ Rendered using Jinja2 Templates.
 
 Hrishabh Pal  
 Python Learner | QA Automation Aspirant
-
-
-
-
-
