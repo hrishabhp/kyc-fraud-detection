@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>KYC Fraud Detection Dashboard</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .section-title {
+            color: #444;
+            margin-bottom: 10px;
+        }
+
+        .stat {
+            font-size: 18px;
+            margin: 5px 0;
+        }
+    </style>
+
+</head>
+<body>
+
+    <h1>KYC Fraud Detection Dashboard</h1>
+
+    <!-- SYSTEM STATS -->
+    <div class="card">
+        <h2 class="section-title">System Stats</h2>
+        <p class="stat"><b>Total Requests:</b> {{ stats.total_requests }}</p>
+    </div>
+
+    <!-- PAN STATS -->
+    <div class="card">
+        <h2 class="section-title">PAN Validation Stats</h2>
+        <p class="stat"><b>Valid:</b> {{ stats.pan.valid }}</p>
+        <p class="stat"><b>Invalid:</b> {{ stats.pan.invalid }}</p>
+    </div>
+
+    <!-- AADHAAR STATS -->
+    <div class="card">
+        <h2 class="section-title">Aadhaar Validation Stats</h2>
+        <p class="stat"><b>Valid:</b> {{ stats.aadhaar.valid }}</p>
+        <p class="stat"><b>Invalid:</b> {{ stats.aadhaar.invalid }}</p>
+    </div>
+
+</body>
+</html>

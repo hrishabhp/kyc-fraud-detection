@@ -5,8 +5,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from app.database import logs_collection
-
 from pydantic import BaseModel
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse
+from fastapi import Request
 app = FastAPI()
 
 class KYCRequest(BaseModel):
@@ -174,3 +176,9 @@ async def get_stats():
             "invalid": aadhaar_invalid
         }
     }
+templates = Jinja2Templates(directory="app/templates")
+@app.get("/dashboard", response_class=HTMLResponse)
+async def dashboard(request: Request):
+    stats = await get_stats()
+    return templates.TemplateResponse("dashboard.html", {"request": request, "stats": stats})
+
