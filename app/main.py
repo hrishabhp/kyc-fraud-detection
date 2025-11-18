@@ -20,16 +20,14 @@ def health():
 
 @app.get("/validate-pan")
 async def validate_pan(pan: str):
-    pan = pan.upper()  # Handle lowercase inputs
+    pan = pan.upper()  # handle lowercase input
     pattern = r"^[A-Z]{5}[0-9]{4}[A-Z]$"
 
     # PAN validation
     if re.match(pattern, pan):
         is_valid = True
-        response = {"pan": pan, "valid": True}
     else:
         is_valid = False
-        response = {"pan": pan, "valid": False}
 
     # Log into MongoDB
     await logs_collection.insert_one({
@@ -38,7 +36,8 @@ async def validate_pan(pan: str):
         "result": is_valid
     })
 
-    return response
+    # Return the key the tests expect
+    return {"result": is_valid}
 
 # Verhoeff algorithm tables
 d_table = [
@@ -81,15 +80,9 @@ async def validate_aadhaar(aadhaar: str):
     # Basic checks
     if len(aadhaar) != 12 or not aadhaar.isdigit():
         is_valid = False
-        response = {"aadhaar": aadhaar, "valid": False}
     else:
-        # Check using Verhoeff algorithm
-        if verhoeff_check(aadhaar):
-            is_valid = True
-            response = {"aadhaar": aadhaar, "valid": True}
-        else:
-            is_valid = False
-            response = {"aadhaar": aadhaar, "valid": False}
+        # Run Verhoeff algorithm
+        is_valid = verhoeff_check(aadhaar)
 
     # Log into MongoDB
     await logs_collection.insert_one({
@@ -98,7 +91,9 @@ async def validate_aadhaar(aadhaar: str):
         "result": is_valid
     })
 
-    return response
+    # Return the key the tests expect
+    return {"result": is_valid}
+
 @app.post("/validate")
 async def validate_kyc(data: KYCRequest):
     kyc_type = data.type.upper()
