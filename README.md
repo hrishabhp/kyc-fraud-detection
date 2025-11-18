@@ -1,74 +1,110 @@
-🛡️ KYC Fraud Detection System
-PAN & Aadhaar Validator — FastAPI + MongoDB + Jinja2 Dashboard
+Identity Validation API (Aadhaar & PAN) — FastAPI + Pytest  
+A clean and modular Identity Validation Microservice built using FastAPI.
+This project validates Aadhaar and PAN numbers and includes a complete automated test suite using pytest.
+It also demonstrates a reusable fraud scoring module and a scalable backend architecture suitable for QA automation or backend development learning.  
 
-This project is a simple yet practical KYC Fraud Detection System where users can validate PAN and Aadhaar numbers.
-Each validation request is logged into MongoDB, and a web dashboard shows live statistics.
+🚀 Features  
+✅ Aadhaar Validation
 
-This is a great beginner-friendly backend project built using FastAPI + MongoDB Atlas.
+Validates Aadhaar number format
 
-🚀 Features
+Tested with positive and negative inputs
 
-✔ PAN Validation using Regex
-✔ Aadhaar Validation using Verhoeff algorithm
-✔ MongoDB Logging for every request
-✔ Jinja2 HTML Dashboard to view stats
-✔ Clean API documentation using Swagger UI
+Modular utility function  
 
-🛠️ Tech Stack
+✅ PAN Validation
 
-| Layer             | Technology    |
-| ----------------- | ------------- |
-| Backend Framework | FastAPI       |
-| Database          | MongoDB Atlas |
-| Template Engine   | Jinja2        |
-| Web Server        | Uvicorn       |
-| Language          | Python        |
+Validates PAN format using regex
 
-📁 Project Structure
+Includes extensive unit tests
 
-kyc-fraud-detection/
-│── app/
-│    ├── main.py                # FastAPI app + routes
-│    ├── database.py            # MongoDB setup
-│    └── templates/
-│         └── dashboard.html    # Stats dashboard
-│
-│── .env                        # Mongo connection URL
-│── requirements.txt
-│── .gitignore
-│── README.md
+Follows Indian PAN format rules  
 
-▶️ Installation & Setup  
-️1. Install dependencies  
+✅ Fraud Detection Logic
+
+A simple rule-based engine:
+
+Invalid Aadhaar → +50
+
+Invalid PAN → +50
+
+Fraud if score ≥ 50  
+
+Located in:
+app/helpers/fraud_detection.py  
+
+✅ Automated Test Suite (Pytest)
+
+--Tests include:
+
+Aadhaar validation
+
+PAN validation
+
+Fixtures via conftest.py
+
+Utility helpers for test reusability  
+
+📁 Project Structure  
+app/
+  helpers/
+    fraud_detection.py        # Fraud scoring module  
+  templates/
+    dashboard.html            # Template placeholder  
+  database.py                 # (optional) DB integration structure  
+  main.py                     # FastAPI application entry point  
+
+tests/
+  api/
+    test_aadhaar_validation.py
+    test_pan_validation.py
+  config/  
+    settings.py               # Config for test environment   
+  utils/  
+    helpers.py                 # Shared test utilities    
+  conftest.py                   # Global pytest fixtures  
+
+README.md  
+requirements.txt  
+
+▶️ Run the Server  
+Install dependencies:  
 pip install -r requirements.txt  
-2️. Add MongoDB URL  
-MONGO_URL="your-mongodb-url"  
-3️. Run the server  
+
+Run API:  
 uvicorn app.main:app --reload  
 
+Open APIs at:  
+http://localhost:8000/docs  
 
-🌐 API Endpoints  
-Health Check  
-GET /health  
+🧪 Run Tests  
+pytest -v  
 
-Validate PAN  
-GET /validate-pan?pan=ABCDE1234F  
+💡 Why This Project Is Useful  
+This microservice is ideal for:
 
-Validate Aadhaar  
-GET /validate-aadhaar?aadhaar=987654321012  
+1. QA Automation Engineers (API testing + pytest experience)
 
-Dashboard  
-GET /dashboard  
+2. Backend Developers learning FastAPI
 
-📊 Dashboard Preview  
-Shows:  
-Total API calls  
-Valid / invalid PAN
-Valid / invalid Aadhaar  
-Rendered using Jinja2 Templates.  
+3. FinTech-style validation workflows
 
-🔒 Environment Variables  
-|`MONGO_URL` | MongoDB Atlas connection string |
+4. Fraud detection rule engine demonstrations
+
+5. Modular Python project structure showcase
+
+📌 Future Enhancements  
+1. Add a Combined KYC API
+
+2. Store validated records in a database
+
+3. Build fraud analytics dashboard
+
+4. Add authentication (API Key / JWT)
+
+5. CI/CD with GitHub Actions
+
+6. Docker support
 
 👨‍💻 Author
 
